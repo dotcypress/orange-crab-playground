@@ -1,0 +1,18 @@
+[package]
+name = "orange-crab-pac"
+version = "0.0.0"
+authors = ["Vitaly Domnikov <oss@vitaly.codes>"]
+license = "MIT/Apache-2.0"
+edition = "2018"
+
+[dependencies]
+bare-metal = "1.0.0"
+ral-registers = "0.1.1"
+riscv = "0.7.0"
+riscv-rt = { version = "0.8", optional = true }
+
+[build-dependencies]
+svd2ral = { git = "https://github.com/Disasm/svd2ral", rev = "3347b5de2e9253042f60d120ddb159064614b150" }
+
+[features]
+rt = ["riscv-rt"]

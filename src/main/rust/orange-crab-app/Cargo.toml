@@ -1,0 +1,20 @@
+[package]
+name = "orange-crab-app"
+version = "0.0.0"
+authors = ["Vitaly Domnikov <oss@vitaly.codes>"]
+edition = "2018"
+license = "MIT/Apache-2.0"
+
+[[bin]]
+name = "orange-crab-app"
+test = false
+bench = false
+
+[dependencies]
+panic-halt = "0.2.0"
+orange-crab-hal = { path = "../orange-crab-hal/"}
+ushell = "0.3.5"
+
+[profile.release]
+codegen-units = 1
+lto = true

@@ -18,7 +18,7 @@ object OrangeCrab {
       defaultClockDomainFrequency = FixedFrequency(defaultClockDomainFrequency),
       defaultConfigForClockDomains = ClockDomainConfig(
         resetActiveLevel = LOW,
-        resetKind = BOOT
+        resetKind = ASYNC
       ),
       targetDirectory = targetDirectory.toString()
     ).generateVerilog(gen)
