@@ -1,7 +1,7 @@
+use btoi::btou_radix;
 use core::fmt::Write;
-use orange_crab_hal::gpio::gpioa::*;
-use orange_crab_hal::gpio::*;
-use orange_crab_hal::{prelude::*, serial, uart1};
+use orange_crab_hal::led::*;
+use orange_crab_hal::{serial, uart1};
 use ushell::{autocomplete::*, history::*, *};
 
 const SHELL_PROMPT: &str = "» ";
@@ -12,6 +12,7 @@ USAGE:\r\n\
 \tcommand [arg]\r\n\r\n\
 COMMANDS:\r\n\
 \ton        Switch led on\r\n\
+\tcolor     Set led color\r\n\
 \toff       Switch led off\r\n\
 \tstatus    Print led status\r\n\
 \tclear     Clear screen\r\n\
@@ -20,7 +21,7 @@ COMMANDS:\r\n\
 
 const MAX_COMMAND_LEN: usize = 16;
 const HISTORY_SIZE: usize = 4;
-const AUTOCOMPLETE_SIZE: usize = 5;
+const AUTOCOMPLETE_SIZE: usize = 6;
 
 pub type Serial = serial::Serial<uart1::Instance>;
 pub type Autocomplete = StaticAutocomplete<{ AUTOCOMPLETE_SIZE }>;
@@ -29,12 +30,12 @@ pub type Shell = UShell<Serial, Autocomplete, History, { MAX_COMMAND_LEN }>;
 pub type EnvResult = SpinResult<Serial, ()>;
 
 pub struct Env {
-    led_blue: PA2<Output>,
+    led: Led,
 }
 
 impl Env {
-    pub fn new(led_blue: PA2<Output>) -> Self {
-        Self { led_blue }
+    pub fn new(led: Led) -> Self {
+        Self { led }
     }
 
     fn help_cmd(&mut self, shell: &mut Shell, _args: &str) -> EnvResult {
@@ -42,13 +43,25 @@ impl Env {
         Ok(())
     }
 
+    fn set_color_cmd(&mut self, shell: &mut Shell, args: &str) -> EnvResult {
+        match btou_radix::<u32>(args.as_bytes(), 16) {
+            Ok(color) if color <= 0xFFF => {
+                self.led.set_color(color.into());
+                shell.write_str(CR)?;
+            }
+            _ => write!(shell, "{0:}unsupported color{0:}", CR)?,
+        }
+        Ok(())
+    }
+
     fn status_cmd(&mut self, shell: &mut Shell, _args: &str) -> EnvResult {
-        let status = if self.led_blue.is_set_low().unwrap() {
-            "On"
-        } else {
-            "Off"
-        };
-        write!(shell, "{0:}Led status: {1:}{0:}", CR, status,)?;
+        let status = if self.led.enabled() { "On" } else { "Off" };
+        let color: u32 = self.led.color().into();
+        write!(
+            shell,
+            "{0:}Led status: {1:}; Color: 0x{2:x} {0:}",
+            CR, status, color
+        )?;
         Ok(())
     }
 }
@@ -59,12 +72,13 @@ impl Environment<Serial, Autocomplete, History, (), { MAX_COMMAND_LEN }> for Env
             "clear" => shell.clear()?,
             "help" => self.help_cmd(shell, args)?,
             "status" => self.status_cmd(shell, args)?,
+            "color" => self.set_color_cmd(shell, args)?,
             "on" => {
-                self.led_blue.set_low().ok();
+                self.led.enable();
                 shell.write_str(CR)?;
             }
             "off" => {
-                self.led_blue.set_high().ok();
+                self.led.disable();
                 shell.write_str(CR)?;
             }
             "" => shell.write_str(CR)?,

@@ -12,12 +12,13 @@ import spinal.lib.graphic.vga.{Axi4VgaCtrl, Axi4VgaCtrlGenerics, Vga}
 import spinal.lib.io.TriStateArray
 import spinal.lib.misc.HexTools
 import spinal.lib.system.debugger._
+import spinal.lib.graphic._
 
 import vexriscv.plugin._
 import vexriscv._
 import vexriscv.ip.{DataCacheConfig, InstructionCacheConfig}
 
-import playground.soc.mmio.{Apb3SystemCtrl, Apb3TimerCtrl}
+import playground.soc.mmio.{Apb3SystemCtrl, Apb3TimerCtrl, Apb3LedCtrl}
 
 class Core(config: CoreConfig) extends Component {
   val io = new Bundle {
@@ -25,6 +26,7 @@ class Core(config: CoreConfig) extends Component {
 
     val gpio = master(TriStateArray(config.gpioWidth bits))
     val uart = master(Uart())
+    val led = out(Rgb(RgbConfig(1, 1, 1)))
 
     val jtag = if (config.enableDebug) slave(Jtag()) else null
   }
@@ -162,17 +164,21 @@ class Core(config: CoreConfig) extends Component {
     val timerCtrl = Apb3TimerCtrl()
     externalInterrupt setWhen (timerCtrl.io.interrupt)
 
+    val ledCtrl = Apb3LedCtrl()
+
     val apbDecoder = Apb3Decoder(
       master = apbBridge.io.apb,
       slaves = List(
         sysCtrl.io.apb -> (0x00000, 4 kB),
         gpioCtrl.io.apb -> (0x10000, 4 kB),
         uartCtrl.io.apb -> (0x20000, 4 kB),
-        timerCtrl.io.apb -> (0x30000, 4 kB)
+        timerCtrl.io.apb -> (0x30000, 4 kB),
+        ledCtrl.io.apb -> (0x40000, 4 kB)
       )
     )
   }
 
   io.gpio <> axi.gpioCtrl.io.gpio
   io.uart <> axi.uartCtrl.io.uart
+  io.led <> axi.ledCtrl.io.led
 }

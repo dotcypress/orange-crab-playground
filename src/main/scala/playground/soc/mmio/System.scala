@@ -4,8 +4,6 @@ import spinal.core._
 import spinal.lib._
 import spinal.lib.bus.amba3.apb._
 import spinal.lib.bus.misc.BusSlaveFactory
-
-import org.w3c.dom.css.RGBColor
 import spinal.lib.graphic.Rgb
 
 case class Apb3SystemCtrl() extends Component {

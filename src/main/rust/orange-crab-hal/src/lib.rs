@@ -8,6 +8,7 @@ pub use orange_crab_pac::arch::interrupt;
 pub use orange_crab_pac::*;
 
 pub mod gpio;
+pub mod led;
 pub mod prelude;
 pub mod serial;
 pub mod time;

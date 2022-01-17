@@ -915,5 +915,38 @@
         </register>
       </registers>
     </peripheral>
+    <peripheral>
+      <name>RGBLED</name>
+      <description>System LED controller</description>
+      <baseAddress>0xF0040000</baseAddress>
+      <addressBlock>
+        <offset>0</offset>
+        <size>0x04</size>
+        <usage>registers</usage>
+      </addressBlock>
+      <registers>
+        <register>
+          <name>LED1</name>
+          <description>Led control register</description>
+          <addressOffset>0x00</addressOffset>
+          <resetValue>0x00</resetValue>
+          <size>32</size>
+          <fields>
+            <field>
+              <name>ENABLE</name>
+              <description>Led enable</description>
+              <bitOffset>0</bitOffset>
+              <bitWidth>1</bitWidth>
+            </field>
+            <field>
+              <name>COLOR</name>
+              <description>Led color</description>
+              <bitOffset>16</bitOffset>
+              <bitWidth>12</bitWidth>
+            </field>
+          </fields>
+        </register>
+      </registers>
+    </peripheral>
   </peripherals>
 </device>
