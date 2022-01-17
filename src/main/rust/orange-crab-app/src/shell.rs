@@ -11,17 +11,19 @@ const HELP: &str = "\r\n\
 USAGE:\r\n\
 \tcommand [arg]\r\n\r\n\
 COMMANDS:\r\n\
-\ton        Switch led on\r\n\
-\tcolor     Set led color\r\n\
-\toff       Switch led off\r\n\
-\tstatus    Print led status\r\n\
-\tclear     Clear screen\r\n\
-\thelp      Print this message\r\n
+\tmr    [ADDR]        Memory read\r\n\
+\tmw    [ADDR] [VAL]  Memory write\r\n\
+\tcolor [RGB]         Set led color\r\n\
+\ton                  Switch led on\r\n\
+\toff                 Switch led off\r\n\
+\tstatus              Print led status\r\n\
+\tclear               Clear screen\r\n\
+\thelp                Print this message\r\n
 ";
 
 const MAX_COMMAND_LEN: usize = 16;
 const HISTORY_SIZE: usize = 4;
-const AUTOCOMPLETE_SIZE: usize = 6;
+const AUTOCOMPLETE_SIZE: usize = 8;
 
 pub type Serial = serial::Serial<uart1::Instance>;
 pub type Autocomplete = StaticAutocomplete<{ AUTOCOMPLETE_SIZE }>;
@@ -54,6 +56,38 @@ impl Env {
         Ok(())
     }
 
+    fn memory_read_cmd(&mut self, shell: &mut Shell, args: &str) -> EnvResult {
+        match btou_radix::<u32>(args.as_bytes(), 16) {
+            Ok(addr) => {
+                let addr = addr as *const i32;
+                write!(shell, "{0:}{1:}{0:}", CR, unsafe { *addr })?;
+            }
+            _ => write!(shell, "{0:}invalid address{0:}", CR)?,
+        }
+        Ok(())
+    }
+
+    fn memory_write_cmd(&mut self, shell: &mut Shell, args: &str) -> EnvResult {
+        match args.split_once(" ") {
+            Some((addr, val)) => match btou_radix::<u32>(addr.as_bytes(), 16) {
+                Ok(addr) => match btou_radix::<i32>(val.as_bytes(), 16) {
+                    Ok(val) => {
+                        unsafe {
+                            let addr = addr as *mut i32;
+                            *addr = val;
+                        }
+                        shell.write_str(CR)?;
+                    }
+                    _ => write!(shell, "{0:}invalid value{0:}", CR)?,
+                },
+                _ => write!(shell, "{0:}invalid address{0:}", CR)?,
+            },
+            _ => write!(shell, "{0:}invalid arguments{0:}", CR)?,
+        }
+
+        Ok(())
+    }
+
     fn status_cmd(&mut self, shell: &mut Shell, _args: &str) -> EnvResult {
         let status = if self.led.enabled() { "On" } else { "Off" };
         let color: u32 = self.led.color().into();
@@ -72,6 +106,8 @@ impl Environment<Serial, Autocomplete, History, (), { MAX_COMMAND_LEN }> for Env
             "clear" => shell.clear()?,
             "help" => self.help_cmd(shell, args)?,
             "status" => self.status_cmd(shell, args)?,
+            "mr" => self.memory_read_cmd(shell, args)?,
+            "mw" => self.memory_write_cmd(shell, args)?,
             "color" => self.set_color_cmd(shell, args)?,
             "on" => {
                 self.led.enable();

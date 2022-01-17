@@ -169,11 +169,11 @@ class Core(config: CoreConfig) extends Component {
     val apbDecoder = Apb3Decoder(
       master = apbBridge.io.apb,
       slaves = List(
-        sysCtrl.io.apb -> (0x00000, 4 kB),
-        gpioCtrl.io.apb -> (0x10000, 4 kB),
-        uartCtrl.io.apb -> (0x20000, 4 kB),
-        timerCtrl.io.apb -> (0x30000, 4 kB),
-        ledCtrl.io.apb -> (0x40000, 4 kB)
+        sysCtrl.io.apb -> (0x00000, 1 kB),
+        gpioCtrl.io.apb -> (0x10000, 1 kB),
+        uartCtrl.io.apb -> (0x20000, 1 kB),
+        timerCtrl.io.apb -> (0x30000, 1 kB),
+        ledCtrl.io.apb -> (0x40000, 1 kB)
       )
     )
   }

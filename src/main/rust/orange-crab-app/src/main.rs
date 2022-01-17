@@ -17,10 +17,6 @@ static mut STATE: Option<(Shell, Env)> = None;
 
 #[entry]
 fn main() -> ! {
-    // let gpio = GPIOA::take().unwrap().split();
-    // let mut led = gpio.pa0.into_output();
-    // led.set_high().ok();
-
     let mut led = RGBLED::take().unwrap().led();
     led.enable();
     led.set_color(RGB12::new(0, 0, 8));
@@ -28,7 +24,7 @@ fn main() -> ! {
     let mut uart = UART1::take().unwrap().serial(serial::Config::default());
     uart.rx().listen();
 
-    let autocomplete = StaticAutocomplete(["color", "clear", "help", "status", "on", "off"]);
+    let autocomplete = StaticAutocomplete(["color", "clear", "help", "status", "on", "off", "mw", "mr"]);
     let history = LRUHistory::default();
     let shell = UShell::new(uart, autocomplete, history);
 
